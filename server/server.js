@@ -11,17 +11,24 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// Health Check Route
+app.get('/api/test', (req, res) => {
+  res.send('✅ Backend is working!');
+});
+
 // Routes
 const authRoutes = require('./routes/auth');
-const favoriteRoutes = require('./routes/favorites'); // Must come after 'app' is declared
+const favoriteRoutes = require('./routes/favorites');
+const otpRoutes = require('./routes/otp'); // NEW
 
 app.use('/api/auth', authRoutes);
 app.use('/api/favorites', favoriteRoutes);
+app.use('/api/otp', otpRoutes); // NEW
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
 })
 .then(() => console.log('✅ MongoDB connected'))
 .catch(err => console.error('❌ MongoDB connection failed:', err.message));
