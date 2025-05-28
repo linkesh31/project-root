@@ -16,13 +16,17 @@ export default function Login() {
       const response = await axios.post('http://localhost:5000/api/auth/login', formData);
       alert("Login successful");
 
-      // Save token
+      // ✅ Save token
       localStorage.setItem('token', response.data.token);
 
-      // Navigate to dashboard
+      // ✅ Save user info (optional but useful)
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+
+      // ✅ Navigate to your dashboard/home page
       navigate('/dashboard');
     } catch (err) {
       alert(err.response?.data?.message || 'Login failed');
+      console.error(err);
     }
   };
 
