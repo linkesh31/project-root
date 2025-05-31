@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const FavoriteAnime = require('../models/FavoriteAnime');
-const FavoriteTeam = require('../models/FavoriteTeam');
-const auth = require('../middleware/auth'); // ✅ import middleware
+const FavoriteGame = require('../models/FavoriteGame');
+const auth = require('../middleware/auth');
 
-// ✅ Save Favorite Anime (Protected)
+// ✅ Anime routes
 router.post('/anime', auth, async (req, res) => {
   const { animeId, title, posterImage, rating } = req.body;
-  const userId = req.userId; // ✅ from token
+  const userId = req.userId;
 
   try {
     const exists = await FavoriteAnime.findOne({ userId, animeId });
@@ -21,7 +21,6 @@ router.post('/anime', auth, async (req, res) => {
   }
 });
 
-// ✅ Get Favorite Anime by User (Protected)
 router.get('/anime', auth, async (req, res) => {
   try {
     const data = await FavoriteAnime.find({ userId: req.userId });
@@ -31,54 +30,51 @@ router.get('/anime', auth, async (req, res) => {
   }
 });
 
-// ✅ Remove Favorite Anime (Protected)
 router.delete('/anime/:animeId', auth, async (req, res) => {
   try {
     await FavoriteAnime.findOneAndDelete({
       userId: req.userId,
       animeId: req.params.animeId
     });
-    res.status(200).json({ message: "Anime removed from favorites" });
+    res.status(200).json({ message: "Anime removed" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// ✅ Save Favorite Sports Team (Protected)
-router.post('/sports', auth, async (req, res) => {
-  const { teamId, teamName, teamBadge, league, country } = req.body;
+// ✅ Game routes
+router.post('/games', auth, async (req, res) => {
+  const { gameId, title, posterImage, rating } = req.body;
   const userId = req.userId;
 
   try {
-    const exists = await FavoriteTeam.findOne({ userId, teamId });
+    const exists = await FavoriteGame.findOne({ userId, gameId });
     if (exists) return res.status(400).json({ message: "Already saved" });
 
-    const fav = new FavoriteTeam({ userId, teamId, teamName, teamBadge, league, country });
+    const fav = new FavoriteGame({ userId, gameId, title, posterImage, rating });
     await fav.save();
-    res.status(200).json({ message: "Team saved" });
+    res.status(200).json({ message: "Game saved" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// ✅ Get Favorite Sports Teams (Protected)
-router.get('/sports', auth, async (req, res) => {
+router.get('/games', auth, async (req, res) => {
   try {
-    const data = await FavoriteTeam.find({ userId: req.userId });
+    const data = await FavoriteGame.find({ userId: req.userId });
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// ✅ Remove Favorite Team (Protected)
-router.delete('/sports/:teamId', auth, async (req, res) => {
+router.delete('/games/:gameId', auth, async (req, res) => {
   try {
-    await FavoriteTeam.findOneAndDelete({
+    await FavoriteGame.findOneAndDelete({
       userId: req.userId,
-      teamId: req.params.teamId
+      gameId: req.params.gameId
     });
-    res.status(200).json({ message: "Team removed from favorites" });
+    res.status(200).json({ message: "Game removed" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

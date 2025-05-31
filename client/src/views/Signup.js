@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function Signup() {
   const [formData, setFormData] = useState({ email: '', username: '', password: '' });
@@ -22,7 +22,7 @@ export default function Signup() {
   };
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div style={{ padding: '2rem', textAlign: 'center' }}>
       <h2>Signup</h2>
       <form onSubmit={handleSignup}>
         <input
@@ -51,6 +51,11 @@ export default function Signup() {
         /><br /><br />
         <button type="submit">Sign Up</button>
       </form>
+
+      <div style={{ marginTop: '1rem' }}>
+        <span>Already have an account? </span>
+        <Link to="/">Login</Link>
+      </div>
     </div>
   );
 }

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios'; // For public Jikan API
-import axiosInstance from '../utils/axiosInstance'; // For protected backend routes
+import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
 import { jwtDecode } from 'jwt-decode';
-
 
 export default function AnimePage() {
   const [animeList, setAnimeList] = useState([]);
@@ -75,32 +74,44 @@ export default function AnimePage() {
   };
 
   const handleAddToFavorites = async (anime) => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('You must be logged in to favorite.');
-      return;
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('You must be logged in to favorite.');
+        return;
+      }
+
+      const payload = {
+        animeId: String(anime.mal_id),
+        title: anime.title,
+        posterImage: anime.images.jpg.image_url,
+        rating: anime.score || 'N/A'
+      };
+
+      await axiosInstance.post('/favorites/anime', payload);
+      alert(`${anime.title} added to favorites!`);
+      setFavoriteAnimeIds(prev => [...prev, payload.animeId]);
+    } catch (err) {
+      console.error('Error adding favorite:', err);
+      alert('Failed to add to favorites.');
     }
+  };
 
-    const decoded = jwtDecode(token);
-    const userId = decoded.userId; // ✅ extract from token
-
-    const payload = {
-  animeId: String(anime.mal_id),
-  title: anime.title,
-  posterImage: anime.images.jpg.image_url,
-  rating: anime.score || 'N/A'
-};
-
-
-    await axiosInstance.post('/favorites/anime', payload);
-    alert(`${anime.title} added to favorites!`);
-    setFavoriteAnimeIds(prev => [...prev, payload.animeId]);
+  const handleVisitWebsite = async (anime) => {
+  try {
+    const res = await axiosInstance.post('/recent/anime', {
+      animeId: String(anime.mal_id),
+      title: anime.title,
+      url: anime.url
+    });
+    console.log("✅ Successfully saved recent anime:", res.data);
+    window.open(anime.url, '_blank');
   } catch (err) {
-    console.error('Error adding favorite:', err);
-    alert('Failed to add to favorites.');
+    console.error("❌ Error saving recent anime:", err.response?.data || err.message);
+    window.open(anime.url, '_blank');
   }
 };
+
 
   const isAlreadyFavorited = (mal_id) => {
     return favoriteAnimeIds.includes(String(mal_id));
@@ -118,26 +129,14 @@ export default function AnimePage() {
           onChange={e => setSearchTerm(e.target.value)}
           style={{ padding: '0.5rem', width: '200px' }}
         />
-        <select
-          value={selectedGenre}
-          onChange={e => setSelectedGenre(e.target.value)}
-          style={{ padding: '0.5rem' }}
-        >
+        <select value={selectedGenre} onChange={e => setSelectedGenre(e.target.value)} style={{ padding: '0.5rem' }}>
           {genreOptions.map(g => <option key={g} value={g}>{g || 'All Genres'}</option>)}
         </select>
-        <select
-          value={selectedType}
-          onChange={e => setSelectedType(e.target.value)}
-          style={{ padding: '0.5rem' }}
-        >
+        <select value={selectedType} onChange={e => setSelectedType(e.target.value)} style={{ padding: '0.5rem' }}>
           {typeOptions.map(t => <option key={t} value={t}>{t || 'All Types'}</option>)}
         </select>
-        <button onClick={handleSearch} style={{ padding: '0.5rem 1rem', backgroundColor: '#cba76b' }}>
-          Search
-        </button>
-        <button onClick={handleClear} style={{ padding: '0.5rem 1rem', backgroundColor: '#592d39', color: 'white' }}>
-          Clear
-        </button>
+        <button onClick={handleSearch} style={{ padding: '0.5rem 1rem', backgroundColor: '#cba76b' }}>Search</button>
+        <button onClick={handleClear} style={{ padding: '0.5rem 1rem', backgroundColor: '#592d39', color: 'white' }}>Clear</button>
       </div>
 
       {loading ? (
@@ -146,73 +145,22 @@ export default function AnimePage() {
         <p>No anime found.</p>
       ) : (
         animeList.map(anime => (
-          <div key={anime.mal_id} style={{
-            display: 'flex',
-            marginBottom: '2rem',
-            paddingBottom: '1rem',
-            borderBottom: '1px solid #ddd'
-          }}>
-            <img src={anime.images.jpg.image_url} alt={anime.title} style={{
-              width: '150px',
-              borderRadius: '8px',
-              objectFit: 'cover',
-              marginRight: '1.5rem'
-            }} />
+          <div key={anime.mal_id} style={{ display: 'flex', marginBottom: '2rem', paddingBottom: '1rem', borderBottom: '1px solid #ddd' }}>
+            <img src={anime.images.jpg.image_url} alt={anime.title} style={{ width: '150px', borderRadius: '8px', objectFit: 'cover', marginRight: '1.5rem' }} />
             <div style={{ flex: 1 }}>
               <h3>{anime.title}</h3>
-              <p style={{ fontSize: '0.9rem' }}>
-                {anime.synopsis ? anime.synopsis.slice(0, 300) + '...' : 'No description available.'}
-              </p>
+              <p style={{ fontSize: '0.9rem' }}>{anime.synopsis ? anime.synopsis.slice(0, 300) + '...' : 'No description available.'}</p>
               <p><strong>Type:</strong> {anime.type}</p>
               <p><strong>Episodes:</strong> {anime.episodes || 'Unknown'}</p>
               <p><strong>Score:</strong> {anime.score || 'N/A'}</p>
 
               {isAlreadyFavorited(anime.mal_id) ? (
-                <button
-                  disabled
-                  style={{
-                    padding: '0.4rem 1rem',
-                    backgroundColor: 'gray',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    marginRight: '1rem',
-                    cursor: 'not-allowed'
-                  }}
-                >
-                  Saved
-                </button>
+                <button disabled style={{ padding: '0.4rem 1rem', backgroundColor: 'gray', color: 'white', border: 'none', borderRadius: '4px', marginRight: '1rem', cursor: 'not-allowed' }}>Saved</button>
               ) : (
-                <button
-                  onClick={() => handleAddToFavorites(anime)}
-                  style={{
-                    padding: '0.4rem 1rem',
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    marginRight: '1rem',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Add to Favorites
-                </button>
+                <button onClick={() => handleAddToFavorites(anime)} style={{ padding: '0.4rem 1rem', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', marginRight: '1rem', cursor: 'pointer' }}>Add to Favorites</button>
               )}
 
-              <a
-                href={anime.url}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  padding: '0.4rem 1rem',
-                  backgroundColor: 'green',
-                  color: 'white',
-                  textDecoration: 'none',
-                  borderRadius: '4px'
-                }}
-              >
-                Visit Website
-              </a>
+              <button onClick={() => handleVisitWebsite(anime)} style={{ padding: '0.4rem 1rem', backgroundColor: 'green', color: 'white', borderRadius: '4px' }}>Visit Website</button>
             </div>
           </div>
         ))

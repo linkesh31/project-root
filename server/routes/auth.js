@@ -6,7 +6,7 @@ const User = require('../models/User');
 const generateOTP = require('../utils/otpGenerator');
 const sendOTP = require('../utils/mailer');
 
-// ➤ Signup with OTP
+// ✅ SIGNUP WITH OTP
 router.post('/signup', async (req, res) => {
   const { email, username, password } = req.body;
 
@@ -34,7 +34,7 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-// ➤ OTP Verification
+// ✅ OTP VERIFICATION (for signup)
 router.post('/verify-otp', async (req, res) => {
   const { email, otp } = req.body;
 
@@ -46,7 +46,6 @@ router.post('/verify-otp', async (req, res) => {
       user.isVerified = true;
       user.otp = null;
       await user.save();
-
       res.status(200).json({ message: "Email verified successfully" });
     } else {
       res.status(400).json({ message: "Invalid OTP" });
@@ -56,7 +55,7 @@ router.post('/verify-otp', async (req, res) => {
   }
 });
 
-// ➤ Login (only if email verified)
+// ✅ LOGIN (only if email verified)
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -68,9 +67,11 @@ router.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '2h'
-    });
+    const token = jwt.sign(
+      { userId: user._id.toString(), username: user.username },
+      process.env.JWT_SECRET,
+      { expiresIn: '2h' }
+    );
 
     res.status(200).json({
       token,
@@ -81,6 +82,62 @@ router.post('/login', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ message: "Login failed", error: err.message });
+  }
+});
+
+// ✅ REQUEST OTP FOR PASSWORD RESET
+router.post('/request-reset', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const otp = generateOTP();
+    user.otp = otp;
+    await user.save();
+    await sendOTP(email, otp);
+
+    res.status(200).json({ message: 'OTP sent for password reset' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ✅ VERIFY OTP FOR PASSWORD RESET
+router.post('/verify-reset-otp', async (req, res) => {
+  const { email, otp } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (user.otp === otp) {
+      res.status(200).json({ message: 'OTP matched' });
+    } else {
+      res.status(400).json({ message: 'Invalid OTP' });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ✅ PASSWORD RESET
+router.post('/reset-password', async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.otp = null;
+    await user.save();
+
+    res.status(200).json({ message: 'Password reset successful' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 

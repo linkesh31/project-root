@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../utils/axiosInstance';  // ✅ Use your axiosInstance with token support
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function Login() {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -13,7 +13,7 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', formData);
+      const response = await axiosInstance.post('/auth/login', formData);
       alert("Login successful");
 
       // ✅ Save token
@@ -22,7 +22,7 @@ export default function Login() {
       // ✅ Save user info (optional but useful)
       localStorage.setItem('user', JSON.stringify(response.data.user));
 
-      // ✅ Navigate to your dashboard/home page
+      // ✅ Navigate to dashboard after login
       navigate('/dashboard');
     } catch (err) {
       alert(err.response?.data?.message || 'Login failed');
@@ -41,7 +41,8 @@ export default function Login() {
           required
           value={formData.email}
           onChange={handleChange}
-        /><br /><br />
+          style={{ padding: '10px', marginBottom: '10px', width: '300px' }}
+        /><br />
         <input
           type="password"
           name="password"
@@ -49,9 +50,16 @@ export default function Login() {
           required
           value={formData.password}
           onChange={handleChange}
-        /><br /><br />
-        <button type="submit">Login</button>
+          style={{ padding: '10px', marginBottom: '10px', width: '300px' }}
+        /><br />
+
+        <button type="submit" style={{ padding: '10px 20px' }}>Login</button>
       </form>
+
+      <div style={{ marginTop: '20px' }}>
+        <Link to="/signup">Don't have an account? Signup</Link> <br />
+        <Link to="/forgot-password">Forgot Password?</Link>
+      </div>
     </div>
   );
 }

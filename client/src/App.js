@@ -6,14 +6,15 @@ import Signup from './views/Signup';
 import OTP from './views/OTP';
 import Dashboard from './views/Dashboard';
 import AnimePage from './views/AnimePage';
-import SportsPage from './views/SportsPage';
+import GamesPage from './views/GamesPage';
 import Favorites from './views/Favorites';
 import Navbar from './components/Navbar';
+import ForgotPassword from './views/ForgotPassword';
+import ResetPassword from './views/ResetPassword';
 
-// This wrapper ensures Navbar is hidden on auth pages
 const MainLayout = ({ children }) => {
   const location = useLocation();
-  const hideNavbar = ['/', '/signup', '/otp'].includes(location.pathname);
+  const hideNavbar = ['/', '/signup', '/otp', '/forgot-password', '/reset-password'].includes(location.pathname);
   return (
     <>
       {!hideNavbar && <Navbar />}
@@ -30,9 +31,11 @@ function App() {
           <Route path="/" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/otp" element={<OTP />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/anime" element={<AnimePage />} />
-          <Route path="/sports" element={<SportsPage />} />
+          <Route path="/games" element={<GamesPage />} />
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/profile" element={<div style={{ padding: '2rem' }}><h2>Profile Page (coming soon)</h2></div>} />
         </Routes>

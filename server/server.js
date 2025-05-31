@@ -20,10 +20,12 @@ app.get('/api/test', (req, res) => {
 const authRoutes = require('./routes/auth');
 const favoriteRoutes = require('./routes/favorites');
 const otpRoutes = require('./routes/otp'); // NEW
+const recentRoutes = require('./routes/recent');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/favorites', favoriteRoutes);
 app.use('/api/otp', otpRoutes); // NEW
+app.use('/api/recent', recentRoutes);
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI, {

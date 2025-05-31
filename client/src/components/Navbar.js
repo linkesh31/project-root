@@ -10,7 +10,7 @@ export default function Navbar() {
       <div style={styles.right}>
         <Link to="/dashboard" style={styles.link}>Home</Link>
         <Link to="/anime" style={styles.link}>Anime</Link>
-        <Link to="/sports" style={styles.link}>Sports</Link>
+        <Link to="/games" style={styles.link}>Games</Link>
         <Link to="/favorites" style={styles.link}>Favorites</Link>
         <Link to="/profile" style={styles.link}>Profile</Link>
       </div>
